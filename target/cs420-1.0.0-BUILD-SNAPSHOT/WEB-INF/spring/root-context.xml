@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context = "http://www.springframework.org/schema/context"
+	xmlns:mvc = "http://www.springframework.org/schema/mvc"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xmlns:task= "http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+    http://www.springframework.org/schema/data/mongo
+    http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd
+    http://www.springframework.org/schema/task
+    http://www.springframework.org/schema/task/spring-task-3.1.xsd
+    ">
+    	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+	<!-- Annotations -->	
+	<mvc:annotation-driven />
+	<context:annotation-config />
+	
+	<!-- Mongo -->
+	<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg name="mongo" ref="mongo"/>
+        <constructor-arg name="databaseName" value="CampusMap"/>
+        <constructor-arg name="userCredentials" ref="mongoCredentials"/>
+    </bean>
+
+    <bean id="mongoCredentials" class="org.springframework.data.authentication.UserCredentials">
+        <constructor-arg name="username" value="admin" />
+        <constructor-arg name="password" value="campusmap1234" />
+    </bean>
+
+    <bean class="com.mongodb.MongoURI" id="mongoURI">
+        <constructor-arg value="mongodb://admin:campusmap1234@dharma.mongohq.com:10083/CampusMap"  />
+    </bean>
+
+    <bean class="com.mongodb.Mongo" id="mongo">
+        <constructor-arg ref="mongoURI" />
+    </bean>
+    
+    
+    <!-- Other beans -->
+    <bean id="userDAO" class="edu.wm.cs420.dao.MongoUserDAO" />
+    <bean id="requestDAO" class="edu.wm.cs420.dao.MongoConnectionRequestDAO" />
+    <bean id="meeetingDAO" class="edu.wm.cs420.dao.MongoMeetingDAO" />
+    <bean id="securityService" class="edu.wm.cs420.service.SecurityService" />
+    <bean id="userService" class="edu.wm.cs420.service.UserService" />
+    <bean id="mapService" class="edu.wm.cs420.service.MapService" />
+</beans>
