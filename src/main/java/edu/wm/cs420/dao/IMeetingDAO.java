@@ -9,5 +9,6 @@ public interface IMeetingDAO {
 	public void insertMeeting(Meeting m);
 	public void deleteMeeting(Meeting m);
 	public List<Meeting> getMeetingsByOwnerEmailHandle(String emailHandle);
+	public List<Meeting> getMeetingsByInvitedEmailHandle(String emailHandle);
 	
 }

@@ -4,11 +4,14 @@ import java.util.Date;
 
 public class ConnectionRequest {
 	
+	private String id;
 	private String fromUserEmailHandle;
 	private String toUserEmailHandle;
 	private Date created; //epoch created
 	ConnectionRequestState state;
 
+	public ConnectionRequest() {}
+	
 	public ConnectionRequest(String fromUserEmailHandle, String toUserEmailHandle) {
 		super();
 		this.fromUserEmailHandle = fromUserEmailHandle;
@@ -50,5 +53,12 @@ public class ConnectionRequest {
 	public void setState(ConnectionRequestState state) {
 		this.state = state;
 	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	
 	
 }

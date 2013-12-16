@@ -71,11 +71,11 @@ public final class ConnectedUser {
 	}
 	
 	public double getLatitude() {
-		return this.location[0];
+		return this.location[1];
 	}
 	
 	public double getLongitude() {
-		return this.location[1];
+		return this.location[0];
 	}
 
 	public Set<String> getFriendsEmailHandles() {

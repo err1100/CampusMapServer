@@ -32,4 +32,10 @@ public class MongoMeetingDAO implements IMeetingDAO {
 		return meetings;
 	}
 
+	@Override
+	public List<Meeting> getMeetingsByInvitedEmailHandle(String emailHandle) {
+		Query q = new Query(Criteria.where(emailHandle).in("invitedEmailHandles"));
+		return null;
+	}
+
 }

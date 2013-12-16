@@ -3,6 +3,7 @@ package edu.wm.cs420;
 import java.security.Principal;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +63,7 @@ public class HomeController {
 				false);
 		userService.updateUser(ethan);
 		logger.info("Updated Ethan.");
-		return new JSONResponse(0,ethan);
+		return new JSONResponse(0,null);
 	
 	}
 	
@@ -70,17 +71,41 @@ public class HomeController {
 	@ResponseBody
 	public JSONResponse insertAdmin() {
 		
+		List<FullUser> users = new ArrayList<FullUser>();
+		
 		Set<Role> roles = new HashSet<Role>();
 		roles.add(Role.ROLE_USER);
-		roles.add(Role.ROLE_ADMIN);
 		
-		FullUser ethan = new FullUser("Ethan", "Roday", "erroday",
+		users.add(new FullUser("Carolyn", "McKenna", "camckenna",
 				"123456", roles, null, null, new Date().getTime(),
-				false);
+				false));
+		
+		users.add(new FullUser("Jessica", "Chen", "jlchen",
+				"123456", roles, null, null, new Date().getTime(),
+				false));
+		
+		users.add(new FullUser("Brittany", "Reynoso", "bgreynoso",
+				"123456", roles, null, null, new Date().getTime(),
+				false));
+		
+		users.add(new FullUser("Jaleo", "Velasco-Madden", "jnvelascomadde",
+				"123456", roles, null, null, new Date().getTime(),
+				false));
+		
+		users.add(new FullUser("Aslyn", "Blohm", "aablohm",
+				"123456", roles, null, null, new Date().getTime(),
+				false));
+		
+		roles.add(Role.ROLE_ADMIN);
+		users.add(new FullUser("Ethan", "Roday", "erroday",
+				"123456", roles, null, null, new Date().getTime(),
+				false));
 		
 		try {
-			userService.insertUser(ethan);
-			return new JSONResponse(0,ethan);
+			for(FullUser u : users) {
+				userService.insertUser(u);
+			}
+			return new JSONResponse(0,null);
 		} catch (DuplicateUserException e) {
 			logger.info(e.toString());
 			return new JSONResponse(e.getErrorCode(),e.getMessage());
@@ -98,15 +123,16 @@ public class HomeController {
 	
 	/* =============== REGISTRATION =============== */ 
 	
-	@RequestMapping(value = "/user/register", method = RequestMethod.POST, produces="application/json")
+	@RequestMapping(value = "/register", method = RequestMethod.POST, produces="application/json")
 	@ResponseBody
 	public JSONResponse registerUser(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
 			@RequestParam("emailHandle") String emailHandle, @RequestParam("password") String password,
 			@RequestParam("lat") String latStr, @RequestParam("lng") String lngStr) {
 			
+		logger.info("In registration for "+emailHandle);
 		Set<Role> roles = new HashSet<Role>();
 		roles.add(Role.ROLE_USER);
-		double[] location = {Double.parseDouble(latStr),Double.parseDouble(lngStr)};
+		double[] location = {Double.parseDouble(lngStr),Double.parseDouble(latStr)};
 		FullUser u = new FullUser(firstName,lastName,emailHandle,password,
 				roles,null,location,new Date().getTime(),false);
 		
@@ -122,7 +148,7 @@ public class HomeController {
 	
 	/* =============== USER DETAILS =============== */
 	
-	@RequestMapping(value = "/user/me/", method = RequestMethod.GET, produces="application/json")
+	@RequestMapping(value = "/user/me", method = RequestMethod.GET, produces="application/json")
 	@ResponseBody
 	public JSONResponse getMe(Principal principal) {
 			
@@ -176,7 +202,7 @@ public class HomeController {
 		try {
 			me = userService.getUserByEmailHandle(principal.getName());
 			friend = userService.getUserByEmailHandle(emailHandle);
-			userService.makeRequest(friend, me);
+			userService.makeRequest(me,friend);
 			return new JSONResponse();
 		} catch (CodedException e) {
 			logger.info(e.toString());
@@ -271,20 +297,21 @@ public class HomeController {
 	
 	/* =============== LOCATIONS =============== */
 	
-	@RequestMapping(value = "/user/me/nearby", method = RequestMethod.GET, produces="application/json")
+	@RequestMapping(value = "/user/me/nearby", method = RequestMethod.POST, produces="application/json")
 	@ResponseBody
-	public JSONResponse getNearbyUsers(@RequestParam("lat") String latStr, 
-			@RequestParam("lng") String lngStr,	Principal principal) {
+	public JSONResponse getNearbyToMe(@RequestParam("lat") String latStr, @RequestParam("lng") String lngStr,
+			Principal principal) {
 		
 		FullUser me;
 		try {
 			//Update my location
 			me = userService.getUserByEmailHandle(principal.getName());
-			double[] location = {Double.parseDouble(latStr),Double.parseDouble(lngStr)};
+			double[] location = {Double.parseDouble(lngStr),Double.parseDouble(latStr)};
 			me.setLocation(location);
 			me.setLastUpdate(new Date().getTime());
+			logger.info(location.toString());
 			userService.updateUser(me);
-			
+			logger.info(userService.getUserByEmailHandle(principal.getName()).getLocation().toString());
 			//Get nearby users
 			return new JSONResponse(0,userService.getNearbyUsers(me, 200));
 		} catch (CodedException e) {
@@ -296,20 +323,23 @@ public class HomeController {
 	
 	@RequestMapping(value = "/user/me/shareLocation", method = RequestMethod.POST, produces="application/json")
 	@ResponseBody
-	public JSONResponse shareLocation(@RequestParam("lat") String lat, @RequestParam("lng") String lng,
+	public JSONResponse shareLocation(@RequestParam("lat") String latStr, @RequestParam("lng") String lngStr,
 			Principal principal) {
 		
 		FullUser me;
 		try {
 			//Update my location
 			me = userService.getUserByEmailHandle(principal.getName());
-			double[] location = {Double.parseDouble(lat),Double.parseDouble(lng)};
+			double[] location = {Double.parseDouble(lngStr),Double.parseDouble(latStr)};
 			me.setLocation(location);
 			me.setLastUpdate(new Date().getTime());
 			
 			//Set sharing to true
 			me.setSharingLocation(true);
+			logger.info(location[0]+" "+location[1]);
 			userService.updateUser(me);
+			double[] toLog = userService.getUserByEmailHandle(principal.getName()).getLocation();
+			logger.info(toLog[0]+" "+toLog[1]);
 			
 			return new JSONResponse(0,null);
 		} catch (CodedException e) {
@@ -336,7 +366,7 @@ public class HomeController {
 		
 	}
 	
-	@RequestMapping(value = "/location/nearby", method = RequestMethod.POST, produces="application/json")
+	@RequestMapping(value = "/location/nearby", method = RequestMethod.GET, produces="application/json")
 	@ResponseBody
 	public JSONResponse getNearbyToLocation(@RequestParam("lat") String latStr,
 			@RequestParam("lng") String lngStr, Principal principal) {
@@ -344,9 +374,8 @@ public class HomeController {
 		FullUser me;
 		try {
 			me = userService.getUserByEmailHandle(principal.getName());
-			mapService.getNearbyUsersToLocation(me, Double.parseDouble(latStr),
-					Double.parseDouble(lngStr),	200);
-			return new JSONResponse(0,null);
+			return new JSONResponse(0,mapService.getNearbyUsersToLocation(me, 
+					Double.parseDouble(latStr),	Double.parseDouble(lngStr),	200));
 		} catch (CodedException e) {
 			logger.info(e.toString());
 			return new JSONResponse(e.getErrorCode(),e.getMessage());
@@ -358,13 +387,15 @@ public class HomeController {
 	@RequestMapping(value = "/meetings/makeMeeting", method = RequestMethod.POST, produces="application/json")
 	@ResponseBody
 	public JSONResponse makeMeeting(@RequestParam("lat") String latStr, 
-			@RequestParam("lng") String lngStr, @RequestParam("time") long time, Principal principal) {
+			@RequestParam("lng") String lngStr, @RequestParam("time") long time,
+			@RequestParam(value = "invited") String invited, Principal principal) {
 		
 		FullUser me;
 		try {
 			me = userService.getUserByEmailHandle(principal.getName());
-			double[] location = {Double.parseDouble(latStr),Double.parseDouble(lngStr)};
-			mapService.insertMeeting(new Meeting(location,time,me.getEmailHandle()));
+			double[] location = {Double.parseDouble(lngStr),Double.parseDouble(latStr)};
+			mapService.insertMeeting(new Meeting(location,time,me.getEmailHandle(),
+					Arrays.asList(invited.split(","))));
 			return new JSONResponse(0,null);
 		} catch (CodedException e) {
 			logger.info(e.toString());
@@ -404,6 +435,21 @@ public class HomeController {
 				meetings.addAll(mapService.getMeetingsByOwnerEmailHandle(emailHandle));
 			}
 			return new JSONResponse(0,meetings);
+		} catch (CodedException e) {
+			logger.info(e.toString());
+			return new JSONResponse(e.getErrorCode(),e.getMessage());
+		}
+		
+	}
+	
+	@RequestMapping(value = "/user/me/invitedMeetings", method = RequestMethod.GET, produces="application/json")
+	@ResponseBody
+	public JSONResponse getMyInvitedMeetings(Principal principal) {
+		
+		FullUser me;
+		try {
+			me = userService.getUserByEmailHandle(principal.getName());			
+			return new JSONResponse(0,userService.getInvitedMeetings(me));
 		} catch (CodedException e) {
 			logger.info(e.toString());
 			return new JSONResponse(e.getErrorCode(),e.getMessage());

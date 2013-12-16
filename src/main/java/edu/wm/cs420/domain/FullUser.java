@@ -6,6 +6,7 @@ import java.util.Set;
 
 public final class FullUser {
 
+	String id;
 	private String firstName;
 	private String lastName;
 	private String emailHandle;
@@ -31,6 +32,23 @@ public final class FullUser {
 		this.emailHandle = emailHandle;
 		this.password = password;
 		this.location = (location == null) ? new double[2] : location;
+		this.roles = (roles == null) ? new HashSet<Role>() : roles;
+		this.friendsEmailHandles = (friends == null) ? new HashSet<String>() : friends;
+		this.lastUpdate = lastUpdate;
+		this.isSharingLocation = isSharingLocation;
+	}
+	
+	public FullUser(String firstName, String lastName, String emailHandle,
+			String password, Set<Role> roles, Set<String> friends, double lat, double lng,
+			long lastUpdate, boolean isSharingLocation) {
+		super();
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.emailHandle = emailHandle;
+		this.password = password;
+		this.location = new double[2];
+		this.location[0] = lng;
+		this.location[1] = lat;
 		this.roles = (roles == null) ? new HashSet<Role>() : roles;
 		this.friendsEmailHandles = (friends == null) ? new HashSet<String>() : friends;
 		this.lastUpdate = lastUpdate;
@@ -78,11 +96,11 @@ public final class FullUser {
 	}
 	
 	public double getLatitude() {
-		return this.location[0];
+		return this.location[1];
 	}
 	
 	public double getLongitude() {
-		return this.location[1];
+		return this.location[0];
 	}
 
 	public Set<Role> getRoles() {
@@ -115,6 +133,14 @@ public final class FullUser {
 
 	public void setLastUpdate(long lastUpdate) {
 		this.lastUpdate = lastUpdate;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 }

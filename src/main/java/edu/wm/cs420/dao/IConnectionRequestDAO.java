@@ -15,5 +15,5 @@ public interface IConnectionRequestDAO {
 	public List<ConnectionRequest> getPendingConnectionRequestsByUser(FullUser u);
 	public List<ConnectionRequest> getPendingConnectionRequestsForUser(FullUser u);
 	public void removeConnectionRequest(ConnectionRequest r);
-
+	public void removeAll();
 }

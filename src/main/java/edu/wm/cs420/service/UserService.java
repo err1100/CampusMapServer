@@ -4,14 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import edu.wm.cs420.HomeController;
 import edu.wm.cs420.dao.IConnectionRequestDAO;
+import edu.wm.cs420.dao.IMeetingDAO;
 import edu.wm.cs420.dao.IUserDAO;
 import edu.wm.cs420.domain.ConnectedUser;
 import edu.wm.cs420.domain.ConnectionRequest;
 import edu.wm.cs420.domain.ConnectionRequestState;
 import edu.wm.cs420.domain.FullUser;
+import edu.wm.cs420.domain.Meeting;
 import edu.wm.cs420.domain.PublicUser;
 import edu.wm.cs420.exceptions.DuplicateRequestException;
 import edu.wm.cs420.exceptions.DuplicateUserException;
@@ -23,17 +28,22 @@ public class UserService {
 	
 	@Autowired IUserDAO userDAO;
 	@Autowired IConnectionRequestDAO requestDAO;
+	@Autowired IMeetingDAO meetingDAO;
+	
+	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 	
 	public void insertUser(FullUser u) throws DuplicateUserException {
 		userDAO.insertUser(u);
 	}
 	
 	public void updateUser(FullUser u) {
+		logger.info("In service update.");
 		userDAO.updateUser(u);
 	}
 	
 	public void clearUsers() {
 		userDAO.removeAllUsers();
+		requestDAO.removeAll();
 	}
 	
 	public FullUser getUserByEmailHandle(String emailHandle) throws NoUserFoundException {
@@ -60,13 +70,16 @@ public class UserService {
 		
 		//Accept the request
 		//We don't really care about the state before; a request can always be accepted
-		ConnectionRequest r = requestDAO.getRequestByToAndFrom(from.getEmailHandle(), to.getEmailHandle());
+		ConnectionRequest r = requestDAO.getRequestByToAndFrom(to.getEmailHandle(), from.getEmailHandle());
 		r.setState(ConnectionRequestState.ACCEPTED);
+		logger.info("Accepting request with id "+r.getId());
 		requestDAO.updateConnectionRequest(r);
 		
 		//Add to friends
-		from.getFriendsEmailHandles().add(from.getEmailHandle());
-		to.getFriendsEmailHandles().add(to.getEmailHandle());
+		from.getFriendsEmailHandles().add(to.getEmailHandle());
+		to.getFriendsEmailHandles().add(from.getEmailHandle());
+		userDAO.updateUser(from);
+		userDAO.updateUser(to);
 		
 	}
 	
@@ -120,6 +133,10 @@ public class UserService {
 			}
 		}
 		return nearby;
+	}
+
+	public List<Meeting> getInvitedMeetings(FullUser me) {
+		return meetingDAO.getMeetingsByInvitedEmailHandle(me.getEmailHandle());
 	}
 	
 }

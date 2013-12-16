@@ -9,9 +9,14 @@
  
 	<!-- Managing authentication and roles with Spring Security -->
 	<http auto-config="true">
-		<intercept-url pattern="/*" access="ROLE_USER" />
-		<intercept-url pattern="/registerUser" access="ROLE_ANONYMOUS" />
+		<!-- 
+		<intercept-url pattern="/register" access="ROLE_USER,ROLE_ANONYMOUS,ROLE_ADMIN" />
+		<intercept-url pattern="/user/*" access="ROLE_USER" />
+		<intercept-url pattern="/location/*" access="ROLE_USER" />
+		<intercept-url pattern="/meetings/*" access="ROLE_USER" />
 		<intercept-url pattern="/user/clear" access="ROLE_ADMIN" />
+		 -->
+		 
 	</http>
  
 	<authentication-manager alias="authenticationManager">

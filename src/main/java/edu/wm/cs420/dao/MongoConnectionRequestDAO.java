@@ -2,6 +2,8 @@ package edu.wm.cs420.dao;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -17,9 +19,11 @@ public class MongoConnectionRequestDAO implements IConnectionRequestDAO {
 
 	@Autowired private MongoOperations mongoTemplate;
 	
+	private static final Logger logger = LoggerFactory.getLogger(MongoUserDAO.class);
+	
 	@Override
 	public void insertConnectionRequest(ConnectionRequest r) throws DuplicateRequestException {
-		if (mongoTemplate.find(getToAndFromQuery(r.getFromUserEmailHandle(),r.getToUserEmailHandle()), 
+		if (mongoTemplate.find(getToAndFromQuery(r.getToUserEmailHandle(),r.getFromUserEmailHandle()), 
 				ConnectionRequest.class).size() != 0) {
 			throw new DuplicateRequestException(r.getFromUserEmailHandle(),r.getToUserEmailHandle());
 		}
@@ -28,13 +32,14 @@ public class MongoConnectionRequestDAO implements IConnectionRequestDAO {
 
 	@Override
 	public void updateConnectionRequest(ConnectionRequest r) {
+		logger.info("In connection request update for "+r.getFromUserEmailHandle()+" to "+r.getToUserEmailHandle());
 		mongoTemplate.save(r);
 	}
 
 	@Override
-	public ConnectionRequest getRequestByToAndFrom(String fromEmailHandle,
-			String toEmailHandle) throws NoRequestFoundException {
-		Query q = getToAndFromQuery(fromEmailHandle,toEmailHandle);
+	public ConnectionRequest getRequestByToAndFrom(String toEmailHandle,
+			String fromEmailHandle) throws NoRequestFoundException {
+		Query q = getToAndFromQuery(toEmailHandle,fromEmailHandle);
 		ConnectionRequest r = mongoTemplate.findOne(q, ConnectionRequest.class);
 		if (r == null) {
 			throw new NoRequestFoundException(fromEmailHandle,toEmailHandle);
@@ -60,18 +65,23 @@ public class MongoConnectionRequestDAO implements IConnectionRequestDAO {
 	}
 	
 	private Query getToAndFromQuery(String toEmailHandle, String fromEmailHandle) {
-		return new Query(Criteria.where("fromUser").is(fromEmailHandle)
-				.andOperator(Criteria.where("toUser").is(toEmailHandle)));
+		return new Query(Criteria.where("fromUserEmailHandle").is(fromEmailHandle)
+				.andOperator(Criteria.where("toUserEmailHandle").is(toEmailHandle)));
 	}
 	
 	private Query getToQuery(String toEmailHandle) {
-		return new Query(Criteria.where("toUser").is(toEmailHandle)
+		return new Query(Criteria.where("toUserEmailHandle").is(toEmailHandle)
 				.andOperator(Criteria.where("state").is(ConnectionRequestState.PENDING)));
 	}
 	
 	private Query getFromQuery(String fromEmailHandle) {
-		return new Query(Criteria.where("fromUser").is(fromEmailHandle)
+		return new Query(Criteria.where("fromUserEmailHandle").is(fromEmailHandle)
 				.andOperator(Criteria.where("state").is(ConnectionRequestState.PENDING)));
+	}
+
+	@Override
+	public void removeAll() {
+		mongoTemplate.remove(new Query(), ConnectionRequest.class);
 	}
 
 }
